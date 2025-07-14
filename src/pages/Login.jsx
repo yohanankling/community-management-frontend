@@ -11,15 +11,13 @@ function Login() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
-    const [redirectPath, setRedirectPath] = useState('');
+    const [success, setSuccess] = useState(null);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setError(null);
-        setSuccess(false);
+        setSuccess(null);
         setLoading(true);
-        setRedirectPath('');
 
         if (!email || !password) {
             setError('Please enter your email and password.');
@@ -30,22 +28,19 @@ function Login() {
         try {
             const response = await loginUser({ email, password });
             console.log('Login successful:', response);
-            setSuccess(true);
 
+            let pathToGo;
             if (email === 'ADMIN@ADMIN.COM' || email === 'admin@admin.com') {
-                setRedirectPath('/dashboard');
+                pathToGo = '/dashboard';
             } else {
-                setRedirectPath('/user-dashboard');
+                pathToGo = '/user-dashboard';
             }
 
-            const successMessage = (email === 'ADMIN@ADMIN.COM' || email === 'admin@admin.com')
-                ? 'התחברת בהצלחה! מועבר לדף הניהול...'
-                : 'התחברת בהצלחה! מועבר לדף המשתמש...';
-            setSuccess(successMessage);
+            setSuccess('התחברות בוצעה בהצלחה! ממתין לניתוב...');
 
             setTimeout(() => {
-                navigate(redirectPath);
-            }, 1500);
+                navigate(pathToGo);
+            }, 100);
 
         } catch (err) {
             setError(err.message || 'An unexpected error occurred during login.');

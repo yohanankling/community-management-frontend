@@ -5,6 +5,7 @@ import Register from "./pages/Register.jsx"; // Ensure Register.jsx is correctly
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from "./pages/Login.jsx";
 import UserDashboard from "./pages/UserDashboard.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 
 function App() {
     return (
@@ -18,7 +19,7 @@ function App() {
                 <Route path="/login" element={<Login/>} /> {/* This can be an actual Login component later */}
                 <Route path="/register" element={<Register />} />
                 <Route path="/user-dashboard" element={<UserDashboard />} />
-                <Route path="/dashboard" element={<UserDashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="*" element={null} /> {/* Catch-all for undefined routes, can be a 404 page */}
             </Routes>
