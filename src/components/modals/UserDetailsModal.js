@@ -1,6 +1,6 @@
-// UserDashboard.jsx
+// UserDashboard.jsx (or the parent component rendering UserDetailsModal)
 import React, { useState, useEffect, useCallback } from "react";
-import UserBottomNavbar from "../components/layout/UserBottomNavbar.jsx";
+import UserBottomNavbar from "../../components/layout/UserBottomNavbar.jsx";
 import {
     Container,
     Form,
@@ -8,12 +8,11 @@ import {
     Alert,
     Spinner
 } from "react-bootstrap";
-import UserDashboardCards from "../components/dashboard/UserDashboardCards.jsx";
-import { useUser } from '../context/UserProvider';
+import UserDashboardCards from "../../components/dashboard/UserDashboardCards.jsx";
+import { useUser } from '../../context/UserProvider';
 import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
-import UserDetailsModal from "../modals/UserDetailsModal";
-import ConnectionsHistoryModal from "../modals/UserEventsHistoryModal.jsx";
+// import ConnectionsHistoryModal from "../components/ConnectionsHistoryModal"; // No longer needed if navigating
 
 const mockUserAuthentication = {
     id: "user-123",
@@ -49,7 +48,7 @@ const mockUserData = {
 
 function UserDashboard() {
     const { user, login } = useUser();
-    const navigate = useNavigate();
+    const navigate = useNavigate(); // This is crucial for navigation
 
     const [editableUser, setEditableUser] = useState(null);
     const [showAlert, setShowAlert] = useState(false);
@@ -61,8 +60,9 @@ function UserDashboard() {
     const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
     const [selectedUserForModal, setSelectedUserForModal] = useState(null);
 
-    const [showConnectionsModal, setShowConnectionsModal] = useState(false);
-    const [userForConnections, setUserForConnections] = useState(null);
+    // No longer need state for showConnectionsModal or userForConnections if navigating
+    // const [showConnectionsModal, setShowConnectionsModal] = useState(false);
+    // const [userForConnections, setUserForConnections] = useState(null);
 
     const fetchUserProfile = useCallback(async (initialUserId = null) => {
         setLoadingProfile(true);
@@ -184,15 +184,24 @@ function UserDashboard() {
         setSelectedUserForModal(null);
     };
 
+    // --- MODIFIED: Handle navigation to connections URL ---
     const handleViewConnections = (user) => {
-        setUserForConnections(user);
-        setShowConnectionsModal(true);
+        if (user && user.user_id) {
+            navigate(`/connections/${user.user_id}`); // Navigate to a specific user's connections
+            setShowUserDetailsModal(false); // Close the modal after navigation
+        } else {
+            console.warn("User ID not available for connections navigation.");
+            // Optionally navigate to a generic connections page or show an error
+            // navigate('/connections');
+        }
     };
+    // --- END MODIFIED ---
 
-    const handleHideConnectionsModal = () => {
-        setShowConnectionsModal(false);
-        setUserForConnections(null);
-    };
+    // The handleHideConnectionsModal and userForConnections state are no longer needed
+    // const handleHideConnectionsModal = () => {
+    //     setShowConnectionsModal(false);
+    //     setUserForConnections(null);
+    // };
 
     return (
         <div className="user-dashboard-page" style={{ paddingBottom: '70px', minHeight: '100vh' }}>
@@ -365,18 +374,19 @@ function UserDashboard() {
                     onEditClick={() => console.log('Edit clicked from UserDetailsModal')}
                     onMessageClick={() => console.log('Message clicked from UserDetailsModal')}
                     onDeleteClick={() => console.log('Delete clicked from UserDetailsModal')}
-                    onViewConnectionsClick={handleViewConnections}
+                    onViewConnectionsClick={handleViewConnections} // This now triggers navigation
                     onViewEventsClick={() => console.log('Events clicked from UserDetailsModal')}
                 />
             )}
 
-            {userForConnections && (
+            {/* The ConnectionsHistoryModal is no longer rendered here if you're navigating */}
+            {/* {userForConnections && (
                 <ConnectionsHistoryModal
                     show={showConnectionsModal}
                     onHide={handleHideConnectionsModal}
                     user={userForConnections}
                 />
-            )}
+            )} */}
 
             <UserBottomNavbar />
         </div>

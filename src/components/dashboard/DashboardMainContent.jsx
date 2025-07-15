@@ -14,7 +14,6 @@ import {
 
 import {
     getAllUsers,
-    addUser,
     deleteUser,
     updateUser,
 } from "../../services/userService";

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+// Login.jsx
+import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { Linkedin as LinkedinIcon } from 'react-bootstrap-icons';
 import { loginUser } from '../services/authService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../context/UserProvider';
 
 function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login } = useUser();
 
     const [email, setEmail] = useState('');
@@ -15,6 +17,17 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const errorMessage = params.get('error');
+        if (errorMessage) {
+            setError(decodeURIComponent(errorMessage));
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('error');
+            window.history.replaceState({}, document.title, newUrl.pathname);
+        }
+    }, [location.search]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -29,49 +42,36 @@ function Login() {
         }
 
         try {
-            const response = await loginUser({ email, password });
-            console.log('Login successful:', response);
-
-            if (response && response.user) {
-                login(response.user);
-                console.log('User ID saved to context:', response.user.id);
-            } else {
-                console.warn('Login response did not contain user data.');
-                setError('Login successful, but user data not found in response.');
+            const authData = await loginUser({ email, password });
+            login(authData.user);
+            if (authData.token) {
+                localStorage.setItem('userToken', authData.token);
             }
-
-            let pathToGo;
-            if (email === 'ADMIN@ADMIN.COM' || email === 'admin@admin.com') {
-                pathToGo = '/dashboard';
-            } else {
-                pathToGo = '/user-dashboard';
-            }
-
-            setSuccess('התחברות בוצעה בהצלחה! ממתין לניתוב...');
-
-            setTimeout(() => {
-                navigate(pathToGo);
-            }, 100);
-
+            navigate('/user-dashboard');
+            setSuccess('התחברת בהצלחה!');
         } catch (err) {
-            setError(err.message || 'An unexpected error occurred during login.');
-            console.error('Login error:', err);
+            setError(err.response?.message || err.message || 'שגיאת התחברות.');
         } finally {
             setLoading(false);
         }
     };
 
     const handleLinkedInLogin = () => {
+        setError(null);
+        setSuccess(null);
+        setLoading(true);
         window.location.href = 'http://localhost:5000/auth/linkedin';
     };
 
     return (
-        <Container className="d-flex align-items-center justify-content-center vh-100">
-            <Card style={{ width: '100%', maxWidth: '400px' }} className="shadow p-4">
-                <h2 className="text-center mb-4">התחברות</h2>
+        <Container className="d-flex justify-content-center align-items-center min-vh-100">
+            <Card className="p-4" style={{ width: '100%', maxWidth: '400px' }}>
+                <Card.Title className="text-center mb-4">
+                    <h3>התחברות</h3>
+                </Card.Title>
 
-                {success && <Alert variant="success" className="text-center">{success}</Alert>}
                 {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+                {success && <Alert variant="success" className="text-center">{success}</Alert>}
 
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3" controlId="formBasicEmail">
@@ -102,7 +102,7 @@ function Login() {
                         className="w-100"
                         disabled={loading}
                     >
-                        {loading ? 'מתחבר...' : 'התחבר'}
+                        {loading && !error && !success ? 'מתחבר...' : 'התחבר'}
                     </Button>
                 </Form>
 

@@ -8,6 +8,8 @@ import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
 import UserDashboard from "./pages/UserDashboard.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import ConnectionsDashboard from "./components/connections/ConnectionsDashboard.jsx";
+import RequestsDashboard from "./pages/RequestsDashboard.jsx";
 
 function App() {
     return (
@@ -20,6 +22,8 @@ function App() {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route path="*" element={<Navigate to="/login" replace />} />
+                    <Route path="/connections" element={<ConnectionsDashboard />} />
+                    <Route path="/requests" element={<RequestsDashboard />} />
                 </Routes>
             </UserProvider>
         </BrowserRouter>
