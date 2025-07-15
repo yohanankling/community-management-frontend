@@ -6,46 +6,42 @@ import {
     Button,
     Alert
 } from "react-bootstrap";
-import mockUsers from "../data/mockUsers";
 import UserDashboardCards from "../components/dashboard/UserDashboardCards.jsx";
+import { useUser } from '../context/UserProvider';
 
 import logo from '../assets/logo.png';
 
 function UserDashboard() {
-    // For a user dashboard, we'd typically load the current user's data.
-    // For this example, let's assume the first user in mockUsers is the current user.
-    const [currentUser, setCurrentUser] = useState(null);
+    const { user } = useUser();
+
+    const [editableUser, setEditableUser] = useState(null);
     const [showAlert, setShowAlert] = useState(false);
     const [alertVariant, setAlertVariant] = useState("success");
     const [alertMessage, setAlertMessage] = useState("");
 
     useEffect(() => {
-        // In a real application, you'd fetch the logged-in user's data
-        // For now, let's pick a mock user
-        if (mockUsers.length > 0) {
-            setCurrentUser(mockUsers[0]);
+        if (user) {
+            setEditableUser(user);
         }
-    }, []);
+    }, [user]);
 
     const handleUserChange = (e) => {
         const { name, value } = e.target;
-        setCurrentUser((prevUser) => ({
+        setEditableUser((prevUser) => ({
             ...prevUser,
             [name]: value,
         }));
     };
 
     const handleUpdateProfile = () => {
-        // In a real application, you would send this data to a backend API
-        console.log("Updating user profile:", currentUser);
+        console.log("Updating user profile:", editableUser);
         setAlertVariant("success");
         setAlertMessage("Profile updated successfully!");
         setShowAlert(true);
-        // Simulate API call success/failure
         setTimeout(() => setShowAlert(false), 3000);
     };
 
-    if (!currentUser) {
+    if (!editableUser) {
         return (
             <div className="d-flex justify-content-center align-items-center vh-100">
                 Loading profile...
@@ -62,7 +58,6 @@ function UserDashboard() {
                     overflowY: 'auto',
                 }}
             >
-                {/* Home Page Button with Logo */}
                 <header style={{ display: 'flex', alignItems: 'center', paddingBottom: '20px', borderBottom: '1px solid #eee', marginBottom: '20px' }}>
                     <a href="/user-dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
                         <img src={logo} alt="Home" style={{ height: '40px', marginRight: '10px' }} />
@@ -70,9 +65,7 @@ function UserDashboard() {
                     <h2 className="mb-0 text-primary">My Profile</h2>
                 </header>
 
-                {/* Render the UserDashboardCards component */}
-                {/* totalMembers here might represent the total community members, not just the current user */}
-                <UserDashboardCards totalMembers={mockUsers.length} />
+                <UserDashboardCards totalMembers={0} />
 
                 <h3 className="mb-4 mt-4 text-primary">Edit Your Profile</h3>
 
@@ -89,7 +82,7 @@ function UserDashboard() {
                             type="text"
                             placeholder="Enter full name"
                             name="fullName"
-                            value={currentUser.fullName}
+                            value={editableUser.fullName || ''}
                             onChange={handleUserChange}
                         />
                     </Form.Group>
@@ -99,9 +92,9 @@ function UserDashboard() {
                             type="email"
                             placeholder="Enter email"
                             name="email"
-                            value={currentUser.email}
+                            value={editableUser.email || ''}
                             onChange={handleUserChange}
-                            disabled // Email might not be editable
+                            disabled
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">
@@ -110,7 +103,7 @@ function UserDashboard() {
                             type="url"
                             placeholder="Enter LinkedIn profile link"
                             name="linkedin"
-                            value={currentUser.linkedin}
+                            value={editableUser.linkedin || ''}
                             onChange={handleUserChange}
                         />
                     </Form.Group>
@@ -120,7 +113,7 @@ function UserDashboard() {
                             type="text"
                             placeholder="Enter role"
                             name="role"
-                            value={currentUser.role}
+                            value={editableUser.role || ''}
                             onChange={handleUserChange}
                         />
                     </Form.Group>
@@ -130,7 +123,7 @@ function UserDashboard() {
                             type="number"
                             placeholder="Enter years of experience"
                             name="yearsOfExperience"
-                            value={currentUser.yearsOfExperience}
+                            value={editableUser.yearsOfExperience || ''}
                             onChange={handleUserChange}
                             min="0"
                         />

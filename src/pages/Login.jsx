@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { loginUser } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserProvider';
 
 function Login() {
     const navigate = useNavigate();
+    const { login } = useUser();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -28,6 +30,14 @@ function Login() {
         try {
             const response = await loginUser({ email, password });
             console.log('Login successful:', response);
+
+            if (response && response.user) {
+                login(response.user);
+                console.log('User ID saved to context:', response.user.id);
+            } else {
+                console.warn('Login response did not contain user data.');
+                setError('Login successful, but user data not found in response.');
+            }
 
             let pathToGo;
             if (email === 'ADMIN@ADMIN.COM' || email === 'admin@admin.com') {
