@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Linkedin as LinkedinIcon } from 'react-bootstrap-icons';
 import { loginUser } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserProvider';
@@ -60,6 +61,10 @@ function Login() {
         }
     };
 
+    const handleLinkedInLogin = () => {
+        window.location.href = 'http://localhost:5000/auth/linkedin';
+    };
+
     return (
         <Container className="d-flex align-items-center justify-content-center vh-100">
             <Card style={{ width: '100%', maxWidth: '400px' }} className="shadow p-4">
@@ -104,6 +109,17 @@ function Login() {
                 <div className="text-center mt-3">
                     <small>אין לך חשבון? <a href="/register">להרשמה</a></small>
                 </div>
+
+                <hr className="my-4" />
+
+                <Button
+                    variant="info"
+                    className="w-100 d-flex align-items-center justify-content-center"
+                    onClick={handleLinkedInLogin}
+                    disabled={loading}
+                >
+                    <LinkedinIcon size={20} className="me-2" /> התחבר עם לינקדאין
+                </Button>
             </Card>
         </Container>
     );
