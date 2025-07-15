@@ -1,165 +1,68 @@
-// UserDashboard.jsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import UserBottomNavbar from "../components/layout/UserBottomNavbar.jsx";
-import {
-    Container,
-    Form,
-    Button,
-    Alert,
-    Spinner
-} from "react-bootstrap";
+import { Container, Form, Button, Alert, Spinner } from "react-bootstrap";
 import UserDashboardCards from "../components/dashboard/UserDashboardCards.jsx";
 import { useUser } from '../context/UserProvider';
 import logo from '../assets/logo.png';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import UserDetailsModal from "../modals/UserDetailsModal";
 import ConnectionsHistoryModal from "../modals/UserEventsHistoryModal.jsx";
+import { getUserById } from '../services/authService.jsx';
 
-const mockUserAuthentication = {
-    id: "user-123",
-    email: "user@example.com",
-    lastLogin: "2024-07-15T10:00:00Z",
-};
-
-const mockUserProfile = {
-    user_id: "user-123",
-    english_name: "John Doe",
-    hebrew_name: "ג'ון דו",
-    role: "מפתח תוכנה",
-    seniority: "ראש צוות",
-    phone: "050-1234567",
-    city: "תל אביב",
-    years_of_xp: 7,
-    linkedin_url: "https://www.linkedin.com/in/johndoe",
-    facebook_url: "https://www.facebook.com/johndoe",
-    description: "תיאור אישי קצר של המשתמש.",
-};
-
-const mockUserDetails = {
-    user_id: "user-123",
-    fullName: "John Doe",
-    linkedin: "https://www.linkedin.com/in/johndoe"
-};
-
-const mockUserData = {
-    authentication: mockUserAuthentication,
-    profile: mockUserProfile,
-    details: mockUserDetails,
-};
+// ... (שאר ה-imports וה-mock data נשארים כפי שהם)
 
 function UserDashboard() {
     const { user, login } = useUser();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [editableUser, setEditableUser] = useState(null);
-    const [showAlert, setShowAlert] = useState(false);
-    const [alertVariant, setAlertVariant] = useState("success");
-    const [alertMessage, setAlertMessage] = useState("");
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [hasFetched, setHasFetched] = useState(false); // משתנה חדש לעקוב אחרי קריאה מוצלחת
+    const [currentUserId, setCurrentUserId] = useState(null); // לעקוב אחרי ה-ID הנוכחי
 
     const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
     const [selectedUserForModal, setSelectedUserForModal] = useState(null);
-
     const [showConnectionsModal, setShowConnectionsModal] = useState(false);
     const [userForConnections, setUserForConnections] = useState(null);
 
-    const fetchUserProfile = useCallback(async (initialUserId = null) => {
-        setLoadingProfile(true);
-        setShowAlert(false);
-
-        const userIdToFetch = initialUserId || (user ? user.id : null);
-
-        if (!userIdToFetch) {
-            setLoadingProfile(false);
-            setAlertVariant("danger");
-            setAlertMessage("שגיאה: ID משתמש לא זמין. אנא נסה להתחבר שוב.");
-            setShowAlert(true);
-            navigate('/login', { replace: true });
-            return;
-        }
-
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            const response = {
-                success: true,
-                user: mockUserData,
-                message: "פרופיל משתמש נטען בהצלחה!"
-            };
-
-            if (response.success && response.user) {
-                login(response.user.authentication);
-
-                const fullUserData = {
-                    ...response.user.authentication,
-                    ...response.user.profile,
-                    ...response.user.details,
-                    user_id: response.user.authentication.id || response.user.profile.user_id,
-                    fullName: response.user.profile.english_name,
-                    linkedin: response.user.profile.linkedin_url
-                };
-                setEditableUser(fullUserData);
-            } else {
-                setAlertVariant("danger");
-                setAlertMessage(response.message || "שגיאה בטעינת פרטי המשתמש.");
-                setShowAlert(true);
-                navigate('/login', { replace: true });
-            }
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
-            setAlertVariant("danger");
-            setAlertMessage(`שגיאה בטעינת פרטי המשתמש: ${error.message}`);
-            setShowAlert(true);
-        } finally {
-            setLoadingProfile(false);
-        }
-    }, [user, login, navigate]);
-
-    const handleUpdateProfileWrapper = async (event) => {
-        event.preventDefault();
-        await handleUpdateProfile();
-    };
-
-    const handleUpdateProfile = useCallback(async () => {
+    // פונקציית עדכון הפרופיל
+    const handleUpdateProfile = async () => {
         setIsUpdating(true);
-        setShowAlert(false);
 
         if (!editableUser || !editableUser.user_id) {
-            setAlertVariant("danger");
-            setAlertMessage("שגיאה: לא ניתן לעדכן פרופיל ללא ID משתמש.");
-            setShowAlert(true);
+            console.error("Console Log: Error: Cannot update profile without User ID.");
             setIsUpdating(false);
             return;
         }
 
+        console.log("Console Log: Attempting to update profile for User ID:", editableUser.user_id);
+        console.log("Console Log: Data being sent for update (mock):", editableUser);
+
         try {
             await new Promise(resolve => setTimeout(resolve, 800));
-
             const response = {
                 success: true,
-                user: { authentication: { id: editableUser.user_id, email: editableUser.email } },
                 message: "הפרופיל עודכן בהצלחה!"
             };
 
             if (response.success) {
-                setAlertVariant("success");
-                setAlertMessage("הפרופיל עודכן בהצלחה!");
-                setShowAlert(true);
+                console.log("Console Log: Profile updated successfully!");
             } else {
-                setAlertVariant("danger");
-                setAlertMessage(response.message || "נכשל בעדכון הפרופיל.");
-                setShowAlert(true);
+                console.error("Console Log: Failed to update profile:", response.message || "Unknown error.");
             }
         } catch (error) {
-            console.error("Error updating user profile:", error);
-            setAlertVariant("danger");
-            setAlertMessage(`שגיאה בעדכון הפרופיל: ${error.message}`);
-            setShowAlert(true);
+            console.error("Console Log: Error updating user profile:", error);
         } finally {
             setIsUpdating(false);
         }
-    }, [editableUser]);
+    };
+
+    const handleUpdateProfileWrapper = (event) => {
+        event.preventDefault();
+        handleUpdateProfile();
+    };
 
     const handleUserChange = (e) => {
         const { name, value } = e.target;
@@ -167,31 +70,117 @@ function UserDashboard() {
             ...prev,
             [name]: value
         }));
+        console.log(`Console Log: User input changed - Field: ${name}, New Value: ${value}`);
     };
 
     useEffect(() => {
-        const userIdFromContextOrUrl = user?.id || "user-123";
-        fetchUserProfile(userIdFromContextOrUrl);
-    }, [fetchUserProfile, user]);
+        // מזהה את ה-ID מה-URL
+        const params = new URLSearchParams(location.search);
+        const idFromUrl = params.get('userId');
+
+        if (idFromUrl) {
+            console.log("Console Log: User ID retrieved from URL:", idFromUrl);
+        } else {
+            console.log("Console Log: No User ID found in URL parameters. Using context/default.");
+        }
+
+        const finalUserIdToFetch = idFromUrl || user?.id || "user-123";
+
+        // בדיקה אם כבר טענו נתונים עבור ה-ID הזה
+        if (hasFetched && currentUserId === finalUserIdToFetch) {
+            console.log("Console Log: Data already fetched for User ID:", finalUserIdToFetch);
+            setLoadingProfile(false);
+            return;
+        }
+
+        const fetchUserData = async () => {
+            if (!finalUserIdToFetch) {
+                setLoadingProfile(false);
+                console.error("Console Log: Error: User ID not available for fetching. Redirecting to login.");
+
+('/login', { replace: true });
+                return;
+            }
+
+            // בדיקה נוספת למניעת קריאה כפולה
+            if (editableUser && editableUser.user_id === finalUserIdToFetch) {
+                console.log("Console Log: User profile with ID", finalUserIdToFetch, "already loaded and matched. Skipping API call.");
+                setLoadingProfile(false);
+                setHasFetched(true);
+                setCurrentUserId(finalUserIdToFetch);
+                return;
+            }
+
+            setLoadingProfile(true);
+            console.log("Console Log: Attempting to fetch profile for User ID:", finalUserIdToFetch, "from API.");
+
+            try {
+                const response = await getUserById(finalUserIdToFetch);
+                console.log("Console Log: Raw API response for user data:", response);
+
+                if (response.success && response.user) {
+                    const authenticationData = response.user.authentication;
+                    const profileData = response.user.profile;
+                    const detailsData = response.user.details;
+
+                    // עדכון קונטקסט המשתמש רק אם הכרחי
+                    if (authenticationData && user?.id !== authenticationData.id) {
+                        login(authenticationData);
+                    } else if (!authenticationData && user?.id !== finalUserIdToFetch) {
+                        login({ id: finalUserIdToFetch, email: detailsData?.email || 'unknown@example.com' });
+                    }
+
+                    const fullUserData = {
+                        user_id: authenticationData?.id || profileData?.user_id || detailsData?.user_id || finalUserIdToFetch,
+                        ...authenticationData,
+                        ...profileData,
+                        ...detailsData,
+                        fullName: profileData?.english_name || detailsData?.fullName,
+                        linkedin: profileData?.linkedin_url || detailsData?.linkedin,
+                    };
+                    setEditableUser(fullUserData);
+                    setHasFetched(true); // סימון שהקריאה הצליחה
+                    setCurrentUserId(finalUserIdToFetch); // עדכון ה-ID הנוכחי
+                    console.log("Console Log: User profile loaded successfully!");
+                    console.log("Console Log: Full User Data (after API fetch):", fullUserData);
+                } else {
+                    console.error("Console Log: Error loading user details from server:", response.message || "Unknown error.");
+                    navigate('/login', { replace: true });
+                }
+            } catch (error) {
+                console.error("Console Log: Error fetching user profile from API:", error);
+                navigate('/login', { replace: true });
+            } finally {
+                setLoadingProfile(false);
+            }
+        };
+
+        fetchUserData();
+
+    }, [user, location.search, navigate, login]); // תלויות ללא editableUser
 
     const handleShowUserDetailsModal = (userToView) => {
         setSelectedUserForModal(userToView);
         setShowUserDetailsModal(true);
+        console.log("Console Log: Showing UserDetailsModal for user:", userToView?.user_id);
     };
 
     const handleHideUserDetailsModal = () => {
         setShowUserDetailsModal(false);
         setSelectedUserForModal(null);
+        console.log("Console Log: Hiding UserDetailsModal.");
     };
 
     const handleViewConnections = (user) => {
         setUserForConnections(user);
         setShowConnectionsModal(true);
+        console.log("Console Log: Showing ConnectionsHistoryModal for user:", user?.user_id);
     };
 
     const handleHideConnectionsModal = () => {
         setShowConnectionsModal(false);
         setUserForConnections(null);
+        console.log("Console Log: Hiding ConnectionsHistoryModal.");
     };
 
     return (
@@ -201,12 +190,6 @@ function UserDashboard() {
                     <img src={logo} alt="Logo" style={{ maxWidth: '150px', marginBottom: '20px' }} />
                     <h2>ברוך הבא לדשבורד המשתמש</h2>
                 </div>
-
-                {showAlert && (
-                    <Alert variant={alertVariant} onClose={() => setShowAlert(false)} dismissible>
-                        {alertMessage}
-                    </Alert>
-                )}
 
                 {loadingProfile ? (
                     <div className="text-center my-5">
@@ -362,11 +345,11 @@ function UserDashboard() {
                     show={showUserDetailsModal}
                     onHide={handleHideUserDetailsModal}
                     user={selectedUserForModal}
-                    onEditClick={() => console.log('Edit clicked from UserDetailsModal')}
-                    onMessageClick={() => console.log('Message clicked from UserDetailsModal')}
-                    onDeleteClick={() => console.log('Delete clicked from UserDetailsModal')}
+                    onEditClick={() => console.log('Console Log: Edit clicked from UserDetailsModal')}
+                    onMessageClick={() => console.log('Console Log: Message clicked from UserDetailsModal')}
+                    onDeleteClick={() => console.log('Console Log: Delete clicked from UserDetailsModal')}
                     onViewConnectionsClick={handleViewConnections}
-                    onViewEventsClick={() => console.log('Events clicked from UserDetailsModal')}
+                    onViewEventsClick={() => console.log('Console Log: Events clicked from UserDetailsModal')}
                 />
             )}
 

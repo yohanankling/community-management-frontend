@@ -21,13 +21,25 @@ function Login() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const errorMessage = params.get('error');
+        const userIdFromUrl = params.get('userId');
+
         if (errorMessage) {
             setError(decodeURIComponent(errorMessage));
+        }
+
+        if (userIdFromUrl) {
+            localStorage.setItem('currentUserId', userIdFromUrl);
+            navigate('/user-dashboard');
+            setSuccess('התחברת בהצלחה עם לינקדאין!');
+        }
+
+        if (errorMessage || userIdFromUrl) {
             const newUrl = new URL(window.location.href);
             newUrl.searchParams.delete('error');
+            newUrl.searchParams.delete('userId');
             window.history.replaceState({}, document.title, newUrl.pathname);
         }
-    }, [location.search]);
+    }, [location.search, navigate]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -46,6 +58,9 @@ function Login() {
             login(authData.user);
             if (authData.token) {
                 localStorage.setItem('userToken', authData.token);
+            }
+            if (authData.user && authData.user.id) {
+                localStorage.setItem('currentUserId', authData.user.id);
             }
             navigate('/user-dashboard');
             setSuccess('התחברת בהצלחה!');
