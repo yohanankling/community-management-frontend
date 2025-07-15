@@ -39,3 +39,11 @@ export const getAllUsers = async () => {
     const response = await callApi('/users', 'GET');
     return response;
 };
+
+export const getUserById = async (userId) => {
+    if (!userId) {
+        throw new Error('User ID is required to fetch user data.');
+    }
+    const response = await callApi(`/user/${userId}`, 'GET');
+    return response;
+};
