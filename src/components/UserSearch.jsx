@@ -137,17 +137,6 @@ function UserSearch({ users, onFilteredUsersChange }) {
         filterAndNotifyParent();
     }, [filterAndNotifyParent]);
 
-    // Function to render the selected roles text
-    const renderSelectedRolesText = () => {
-        if (selectedRoleTags.length === 0) {
-            return 'Select Roles';
-        } else if (selectedRoleTags.length === 1) {
-            return `Selected: ${selectedRoleTags[0]}`;
-        } else {
-            return `Selected: ${selectedRoleTags[0]}...`;
-        }
-    };
-
     return (
         <div className="d-flex align-items-center">
             {showSearchInput && isMobile ? (
@@ -227,7 +216,7 @@ function UserSearch({ users, onFilteredUsersChange }) {
                                         style={dropdownToggleStyle}
                                         className="flex-grow-1"
                                     >
-                                        {renderSelectedRolesText()}
+                                        Select Roles
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu style={dropdownMenuStyle}>
                                         {uniqueRoles.map(role => (
@@ -351,7 +340,7 @@ function UserSearch({ users, onFilteredUsersChange }) {
                             style={dropdownToggleStyle}
                             className="w-100"
                         >
-                            {renderSelectedRolesText()}
+                            Select Roles
                         </Dropdown.Toggle>
                         <Dropdown.Menu style={dropdownMenuStyle}>
                             {uniqueRoles.map(role => (
