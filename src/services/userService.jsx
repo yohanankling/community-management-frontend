@@ -3,7 +3,7 @@ const API_BASE_URL = 'http://localhost:5000';
 
 export const getAllUsers = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/users`, {
+        const response = await fetch(`${API_BASE_URL}/users`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

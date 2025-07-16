@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {
     Container,
     Modal,
@@ -38,60 +38,51 @@ function DashboardMainContent({ onExcelImport }) {
                 const fetchedUsers = await getAllUsers();
                 const formattedUsers = fetchedUsers.map(user => ({
                     ...user,
-                    fullName: user.email.split('@')[0],
-                    linkedin: user.linkedin || '',
-                    role: user.role || (user.is_manager ? 'Manager' : 'User'),
-                    yearsOfExperience: user.yearsOfExperience || 0,
+                    fullName: user.english_name,
+                    linkedin: '',
+                    role: user.role,
+                    yearsOfExperience: 0,
                 }));
                 setUsers(formattedUsers);
             } catch (error) {
-                console.error("Failed to fetch users:", error);
                 setFetchError(error.message || "Failed to load users from server.");
             } finally {
                 setLoading(false);
             }
         };
-
         fetchUsers();
     }, []);
-
     useEffect(() => {
         setDisplayUsers(users);
     }, [users]);
 
     const [userForDetails, setUserForDetails] = useState(null);
-
     const [showAddUserModal, setShowAddUserModal] = useState(false);
     const [newUser, setNewUser] = useState({
         fullName: "",
         email: "",
-        password: "", // Added password field for new user registration
+        password: "",
         linkedin: "",
         role: "",
         yearsOfExperience: "",
     });
     const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
-
     const [showSendMessageModal, setShowSendMessageModal] = useState(false);
     const [userForMessage, setUserForMessage] = useState(null);
-
     const [showEditUserModal, setShowEditUserModal] = useState(false);
     const [userForEdit, setUserForEdit] = useState(null);
-
     const [showEventsHistoryModal, setShowEventsHistoryModal] = useState(false);
     const [userForEventsHistory, setUserForEventsHistory] = useState(null);
-
     const [showConnectionsHistoryModal, setShowConnectionsHistoryModal] = useState(false);
     const [userForConnectionsHistory, setUserForConnectionsHistory] = useState(null);
-
     const [showAlertAddUser, setShowAlertAddUser] = useState(false);
     const [alertVariantAddUser, setAlertVariantAddUser] = useState("success");
-    const [alertMessageAddUser, setAlertAddUser] = useState("");
+    const [alertMessageAddUser, setAlertMessageAddUser] = useState("");
 
-    const handleFilteredUsersChange = (filteredList) => {
+    const handleFilteredUsersChange = useCallback((filteredList) => {
         setDisplayUsers(filteredList);
-    };
+    }, []);
 
     const handleExcelImportOnContent = (data) => {
         setUsers((prevUsers) => [...prevUsers, ...data]);
@@ -131,7 +122,7 @@ function DashboardMainContent({ onExcelImport }) {
     const handleAddUser = async () => {
         if (!newUser.email || !newUser.password) {
             setAlertVariantAddUser("danger");
-            setAlertAddUser("Email and password are required fields.");
+            setAlertMessageAddUser("Email and password are required fields.");
             setShowAlertAddUser(true);
             return;
         }
@@ -149,14 +140,13 @@ function DashboardMainContent({ onExcelImport }) {
 
             setUsers((prevUsers) => [...prevUsers, formattedAddedUser]);
             setAlertVariantAddUser("success");
-            setAlertAddUser("User added successfully!");
+            setAlertMessageAddUser("User added successfully!");
             setShowAlertAddUser(true);
             handleCloseAddUserModal();
         } catch (error) {
             setAlertVariantAddUser("danger");
-            setAlertAddUser(error.message || "Failed to add user.");
+            setAlertMessageAddUser(error.message || "Failed to add user.");
             setShowAlertAddUser(true);
-            console.error("Error adding user:", error);
         }
     };
 
@@ -174,15 +164,14 @@ function DashboardMainContent({ onExcelImport }) {
                 prevUsers.filter((user) => user.id !== userToDelete.id)
             );
             setAlertVariantAddUser("success");
-            setAlertAddUser("User deleted successfully!");
+            setAlertMessageAddUser("User deleted successfully!");
             setShowAlertAddUser(true);
             setShowDeleteConfirmModal(false);
             setUserToDelete(null);
         } catch (error) {
             setAlertVariantAddUser("danger");
-            setAlertAddUser(error.message || "Failed to delete user.");
+            setAlertMessageAddUser(error.message || "Failed to delete user.");
             setShowAlertAddUser(true);
-            console.error("Error deleting user:", error);
         }
     };
 
@@ -238,14 +227,13 @@ function DashboardMainContent({ onExcelImport }) {
                 setUserForDetails(formattedUpdatedUser);
             }
             setAlertVariantAddUser("success");
-            setAlertAddUser("User updated successfully!");
+            setAlertMessageAddUser("User updated successfully!");
             setShowAlertAddUser(true);
             handleCloseEditUserModal();
         } catch (error) {
             setAlertVariantAddUser("danger");
-            setAlertAddUser(error.message || "Failed to update user.");
+            setAlertMessageAddUser(error.message || "Failed to update user.");
             setShowAlertAddUser(true);
-            console.error("Error updating user:", error);
         }
     };
 
@@ -295,9 +283,7 @@ function DashboardMainContent({ onExcelImport }) {
         <Container
             fluid
             className="p-4 bg-light flex-grow-1 dashboard-main-content"
-            style={{
-                overflowY: 'auto',
-            }}
+            style={{ overflowY: 'auto' }}
         >
             <DashboardTable
                 users={users}
@@ -410,8 +396,7 @@ function DashboardMainContent({ onExcelImport }) {
                 <Modal.Body>
                     {userToDelete && (
                         <p>
-                            Are you sure you want to delete user{" "}
-                            <strong>{userToDelete.fullName || userToDelete.email}</strong>? This action cannot be undone.
+                            Are you sure you want to delete user <strong>{userToDelete.fullName || userToDelete.email}</strong>? This action cannot be undone.
                         </p>
                     )}
                 </Modal.Body>
