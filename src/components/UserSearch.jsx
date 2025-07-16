@@ -1,18 +1,45 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Form, Button, InputGroup, Badge } from 'react-bootstrap';
+import { Form, Button, InputGroup, Dropdown } from 'react-bootstrap';
 import { Search, XCircleFill, ArrowCounterclockwise } from 'react-bootstrap-icons';
+
+const dropdownToggleStyle = {
+    backgroundColor: '#dee2e6',
+    color: '#495057',
+    border: '1px solid #ced4da',
+    fontSize: '0.9em',
+};
+
+const dropdownMenuStyle = {
+    maxHeight: '200px',
+    overflowY: 'auto',
+    width: 'auto',
+    minWidth: '200px',
+};
+
+const dropdownItemStyle = {
+    padding: '0.5em 1em',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5em',
+    backgroundColor: '#ffffff !important',
+    color: '#495057 !important',
+};
+
+const dropdownItemCheckedStyle = {
+    ...dropdownItemStyle,
+    backgroundColor: '#e7f1ff !important',
+    color: '#007bff !important',
+};
 
 function UserSearch({ users, onFilteredUsersChange }) {
     const [showSearchInput, setShowSearchInput] = useState(false);
     const [searchFilters, setSearchFilters] = useState({
         fullName: "",
-        role: "", // This will still be used for text search within roles
+        role: "",
         yearsOfExperienceMin: "",
         yearsOfExperienceMax: "",
     });
-    // New state for selected role tags
     const [selectedRoleTags, setSelectedRoleTags] = useState([]);
-
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     useEffect(() => {
@@ -23,11 +50,12 @@ function UserSearch({ users, onFilteredUsersChange }) {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Extract unique roles from the users list
     const uniqueRoles = useMemo(() => {
         const roles = new Set();
         users.forEach(user => {
-            if (user.role) {
+            if (Array.isArray(user.role)) {
+                user.role.forEach(r => roles.add(r));
+            } else if (user.role) {
                 roles.add(user.role);
             }
         });
@@ -45,8 +73,10 @@ function UserSearch({ users, onFilteredUsersChange }) {
         }));
     };
 
-    // New handler for role tag selection
-    const handleRoleTagToggle = (role) => {
+    const handleRoleTagToggle = (role, event) => {
+        if (event) {
+            event.stopPropagation();
+        }
         setSelectedRoleTags(prevTags => {
             if (prevTags.includes(role)) {
                 return prevTags.filter(tag => tag !== role);
@@ -63,7 +93,7 @@ function UserSearch({ users, onFilteredUsersChange }) {
             yearsOfExperienceMin: "",
             yearsOfExperienceMax: "",
         });
-        setSelectedRoleTags([]); // Clear selected role tags
+        setSelectedRoleTags([]);
     };
 
     const filterAndNotifyParent = useCallback(() => {
@@ -83,10 +113,11 @@ function UserSearch({ users, onFilteredUsersChange }) {
                 ? user.role.toLowerCase().includes(searchFilters.role.toLowerCase())
                 : true;
 
-            // New: Check if user's role is in the selectedRoleTags array
-            const matchesRoleTags = selectedRoleTags.length > 0
-                ? selectedRoleTags.includes(user.role)
-                : true;
+            const matchesRoleTags = selectedRoleTags.length === 0 || (
+                Array.isArray(user.role)
+                    ? selectedRoleTags.every(tag => user.role.includes(tag))
+                    : selectedRoleTags.includes(user.role)
+            );
 
             const minExp = parseInt(searchFilters.yearsOfExperienceMin, 10);
             const maxExp = parseInt(searchFilters.yearsOfExperienceMax, 10);
@@ -100,11 +131,22 @@ function UserSearch({ users, onFilteredUsersChange }) {
         });
 
         onFilteredUsersChange(filtered);
-    }, [users, searchFilters, selectedRoleTags, onFilteredUsersChange]); // Add selectedRoleTags to dependencies
+    }, [users, searchFilters, selectedRoleTags, onFilteredUsersChange]);
 
     useEffect(() => {
         filterAndNotifyParent();
     }, [filterAndNotifyParent]);
+
+    // Function to render the selected roles text
+    const renderSelectedRolesText = () => {
+        if (selectedRoleTags.length === 0) {
+            return 'Select Roles';
+        } else if (selectedRoleTags.length === 1) {
+            return `Selected: ${selectedRoleTags[0]}`;
+        } else {
+            return `Selected: ${selectedRoleTags[0]}...`;
+        }
+    };
 
     return (
         <div className="d-flex align-items-center">
@@ -177,22 +219,36 @@ function UserSearch({ users, onFilteredUsersChange }) {
                                 </InputGroup>
                             </Form.Group>
 
-                            {/* New: Role Tag Filter for Mobile */}
                             <Form.Group className="mb-3">
-                                <Form.Label className="small mb-1">Filter by Role (Tags)</Form.Label>
-                                <div className="d-flex flex-wrap gap-2">
-                                    {uniqueRoles.map(role => (
-                                        <Button
-                                            key={role}
-                                            variant={selectedRoleTags.includes(role) ? "primary" : "outline-primary"}
-                                            size="sm"
-                                            onClick={() => handleRoleTagToggle(role)}
-                                        >
-                                            {role}
-                                        </Button>
-                                    ))}
-                                </div>
+                                <Form.Label className="small mb-1">Filter by Role</Form.Label>
+                                <Dropdown>
+                                    <Dropdown.Toggle
+                                        variant="outline-secondary"
+                                        style={dropdownToggleStyle}
+                                        className="flex-grow-1"
+                                    >
+                                        {renderSelectedRolesText()}
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu style={dropdownMenuStyle}>
+                                        {uniqueRoles.map(role => (
+                                            <Dropdown.Item
+                                                key={role}
+                                                style={selectedRoleTags.includes(role) ? dropdownItemCheckedStyle : dropdownItemStyle}
+                                                onClick={(e) => handleRoleTagToggle(role, e)}
+                                            >
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    label={role}
+                                                    checked={selectedRoleTags.includes(role)}
+                                                    readOnly
+                                                    className="mb-0"
+                                                />
+                                            </Dropdown.Item>
+                                        ))}
+                                    </Dropdown.Menu>
+                                </Dropdown>
                             </Form.Group>
+
 
                             <Form.Group className="mb-3">
                                 <Form.Label className="small mb-1">Years Experience (Min - Max)</Form.Label>
@@ -231,8 +287,8 @@ function UserSearch({ users, onFilteredUsersChange }) {
                     </div>
                 </div>
             ) : showSearchInput && !isMobile ? (
-                <div className="d-flex flex-wrap align-items-center me-2 flex-grow-1">
-                    <InputGroup className="mb-2 mb-md-0 me-2" style={{ maxWidth: '200px' }}>
+                <div className="d-flex flex-row align-items-center flex-wrap flex-grow-1 me-2">
+                    <InputGroup className="flex-grow-1 me-2" style={{ maxWidth: '200px', minWidth: '150px' }}>
                         <Form.Control
                             type="text"
                             placeholder="Search Name..."
@@ -247,7 +303,7 @@ function UserSearch({ users, onFilteredUsersChange }) {
                         )}
                     </InputGroup>
 
-                    <InputGroup className="mb-2 mb-md-0 me-2" style={{ maxWidth: '150px' }}>
+                    <InputGroup className="flex-grow-1 me-2" style={{ maxWidth: '150px', minWidth: '120px' }}>
                         <Form.Control
                             type="text"
                             placeholder="Search Role (text)..."
@@ -262,21 +318,7 @@ function UserSearch({ users, onFilteredUsersChange }) {
                         )}
                     </InputGroup>
 
-                    {/* New: Role Tag Filter for Desktop */}
-                    <div className="d-flex flex-wrap gap-1 me-2 mb-2 mb-md-0">
-                        {uniqueRoles.map(role => (
-                            <Button
-                                key={role}
-                                variant={selectedRoleTags.includes(role) ? "primary" : "outline-primary"}
-                                size="sm"
-                                onClick={() => handleRoleTagToggle(role)}
-                            >
-                                {role}
-                            </Button>
-                        ))}
-                    </div>
-
-                    <InputGroup className="mb-2 mb-md-0 me-2" style={{ maxWidth: '200px' }}>
+                    <InputGroup className="flex-grow-1 me-2" style={{ maxWidth: '200px', minWidth: '150px' }}>
                         <Form.Control
                             type="number"
                             placeholder="Min Exp"
@@ -287,7 +329,7 @@ function UserSearch({ users, onFilteredUsersChange }) {
                         />
                         <Form.Control
                             type="number"
-                            placeholder="Max Exp"
+                            placeholder="Max"
                             value={searchFilters.yearsOfExperienceMax}
                             onChange={(e) => handleSearchFilterChange("yearsOfExperienceMax", e.target.value)}
                             min="0"
@@ -303,8 +345,35 @@ function UserSearch({ users, onFilteredUsersChange }) {
                         )}
                     </InputGroup>
 
-                    <Button variant="outline-secondary" className="ms-2" onClick={handleClearAllFilters}>
-                        <ArrowCounterclockwise size={18} className="me-2" /> Clear All
+                    <Dropdown className="flex-grow-1 me-2" style={{ maxWidth: '200px', minWidth: '150px' }}>
+                        <Dropdown.Toggle
+                            variant="outline-secondary"
+                            style={dropdownToggleStyle}
+                            className="w-100"
+                        >
+                            {renderSelectedRolesText()}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu style={dropdownMenuStyle}>
+                            {uniqueRoles.map(role => (
+                                <Dropdown.Item
+                                    key={role}
+                                    style={selectedRoleTags.includes(role) ? dropdownItemCheckedStyle : dropdownItemStyle}
+                                    onClick={(e) => handleRoleTagToggle(role, e)}
+                                >
+                                    <Form.Check
+                                        type="checkbox"
+                                        label={role}
+                                        checked={selectedRoleTags.includes(role)}
+                                        readOnly
+                                        className="mb-0"
+                                    />
+                                </Dropdown.Item>
+                            ))}
+                        </Dropdown.Menu>
+                    </Dropdown>
+
+                    <Button variant="outline-secondary" className="me-2" onClick={handleClearAllFilters}>
+                        <ArrowCounterclockwise size={18} className="me-1" /> Clear All
                     </Button>
 
                     <Button variant="outline-danger" onClick={handleSearchToggle} aria-label="Close search">
