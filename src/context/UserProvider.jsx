@@ -1,6 +1,6 @@
 // src/context/UserProvider.jsx
 import React, { useState, useContext } from 'react';
-import { UserContext } from './UserContext.jsx'; // ייבוא ה-Context מהקובץ הנפרד שלו
+import { UserContext } from './UserContext.jsx';
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);

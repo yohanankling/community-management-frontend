@@ -38,10 +38,10 @@ function DashboardMainContent({ onExcelImport }) {
                 const fetchedUsers = await getAllUsers();
                 const formattedUsers = fetchedUsers.map(user => ({
                     ...user,
-                    fullName: user.email.split('@')[0],
-                    linkedin: user.linkedin || '',
-                    role: user.role || (user.is_manager ? 'Manager' : 'User'),
-                    yearsOfExperience: user.yearsOfExperience || 0,
+                    fullName: user.english_name,
+                    linkedin: '',
+                    role: user.role,
+                    yearsOfExperience: 0,
                 }));
                 setUsers(formattedUsers);
             } catch (error) {
@@ -52,7 +52,6 @@ function DashboardMainContent({ onExcelImport }) {
         };
         fetchUsers();
     }, []);
-
     useEffect(() => {
         setDisplayUsers(users);
     }, [users]);
