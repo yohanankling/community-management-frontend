@@ -1,4 +1,3 @@
-// src/components/DashboardTable.jsx
 import React from 'react';
 import {
     Card,
@@ -13,12 +12,12 @@ import {
     Linkedin,
     ThreeDotsVertical,
 } from 'react-bootstrap-icons';
-import UserSearch from '../UserSearch'; // Assuming UserSearch is in the same components folder
+import UserSearch from '../UserSearch';
 
 function DashboardTable({
-                            users, // Original full list of users for UserSearch
-                            displayUsers, // Filtered list of users to display in the table
-                            onFilteredUsersChange, // Callback from Dashboard for UserSearch
+                            users,
+                            displayUsers,
+                            onFilteredUsersChange,
                             onShowAddUserModal,
                             onRowClick,
                         }) {
@@ -73,20 +72,19 @@ function DashboardTable({
                     {displayUsers.length > 0 ? (
                         displayUsers.map((user) => (
                             <tr
-                                key={user.id || user.fullName}
+                                key={user.id}
                                 className="align-middle"
                             >
                                 <td className="text-center">{user.fullName}</td>
                                 <td className="text-center">{user.role}</td>
-                                <td className="text-center">{user.yearsOfExperience || Math.floor(Math.random() * 15) + 1}</td>
+                                <td className="text-center">{user.yearsOfExperience}</td> {/* מציג את הנתון שנשמר באובייקט */}
                                 <td className="text-center">
-                                    {/* Modified line: If linkedin is falsy, generate a random LinkedIn URL */}
                                     {user.linkedin ? (
                                         <Button variant="link" className="p-0 text-primary" href={user.linkedin} target="_blank" rel="noopener noreferrer">
                                             <Linkedin size={25} />
                                         </Button>
                                     ) : (
-                                        <Button variant="link" className="p-0 text-primary" href={`https://www.linkedin.com/in/yohanan-kling/`} target="_blank" rel="noopener noreferrer">
+                                        <Button variant="link" className="p-0 text-primary" href={`https://www.linkedin.com/in/${user.fullName.replace(/\s/g, '-').toLowerCase()}`} target="_blank" rel="noopener noreferrer">
                                             <Linkedin size={25} />
                                         </Button>
                                     )}

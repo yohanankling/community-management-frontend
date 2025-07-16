@@ -16,7 +16,7 @@ export const getAllUsers = async () => {
         }
 
         const data = await response.json();
-        return data.users;
+        return data;
     } catch (error) {
         throw new Error(error.message || 'Network error while fetching users.');
     }
