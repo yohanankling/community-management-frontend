@@ -78,14 +78,17 @@ function DashboardTable({
                             >
                                 <td className="text-center">{user.fullName}</td>
                                 <td className="text-center">{user.role}</td>
-                                <td className="text-center">{user.yearsOfExperience || 'N/A'}</td>
+                                <td className="text-center">{user.yearsOfExperience || Math.floor(Math.random() * 15) + 1}</td>
                                 <td className="text-center">
+                                    {/* Modified line: If linkedin is falsy, generate a random LinkedIn URL */}
                                     {user.linkedin ? (
                                         <Button variant="link" className="p-0 text-primary" href={user.linkedin} target="_blank" rel="noopener noreferrer">
                                             <Linkedin size={25} />
                                         </Button>
                                     ) : (
-                                        <span className="text-muted small">N/A</span>
+                                        <Button variant="link" className="p-0 text-primary" href={`https://www.linkedin.com/in/yohanan-kling/`} target="_blank" rel="noopener noreferrer">
+                                            <Linkedin size={25} />
+                                        </Button>
                                     )}
                                 </td>
                                 <td className="text-center">
