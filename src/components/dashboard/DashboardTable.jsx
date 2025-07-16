@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card,
     Table,
     Button,
     Alert,
+    FormControl,
+    InputGroup,
+    Spinner
 } from 'react-bootstrap';
 import {
     PersonCircle,
@@ -11,25 +14,81 @@ import {
     Calendar3Fill,
     Linkedin,
     ThreeDotsVertical,
+    Stars,
 } from 'react-bootstrap-icons';
 import UserSearch from '../UserSearch';
+import { sendAiPrompt } from '../../services/aiService'; // Import sendAiPrompt
 
 function DashboardTable({
                             users,
-                            displayUsers,
-                            onFilteredUsersChange,
+                            onFilteredUsersChange, // Keep this if UserSearch still filters the original 'users'
                             onShowAddUserModal,
                             onRowClick,
                         }) {
+    const [aiSearchInput, setAiSearchInput] = useState('');
+    const [aiSearchResults, setAiSearchResults] = useState([]); // Initialize as empty array
+    const [aiSearchLoading, setAiSearchLoading] = useState(false);
+    const [currentDisplayUsers, setCurrentDisplayUsers] = useState(users); // New state for users displayed in table
+
+    // Update currentDisplayUsers when 'users' prop changes or when AI search results are available
+    useEffect(() => {
+        if (aiSearchResults.length > 0) {
+            setCurrentDisplayUsers(aiSearchResults);
+        } else {
+            setCurrentDisplayUsers(users); // Revert to original users if AI results are cleared
+        }
+    }, [users, aiSearchResults]);
+
+
+    const handleAiSearch = async () => {
+        if (!aiSearchInput.trim()) {
+            console.log('AI search input is empty. Displaying all users.');
+            setAiSearchResults([]); // Clear AI search results to display all users
+            return;
+        }
+
+        setAiSearchLoading(true);
+        try {
+            const result = await sendAiPrompt(aiSearchInput); // Send prompt to AI service
+            console.log('AI Search Results:', result);
+            // Assuming 'result' is an array of user objects directly
+            setAiSearchResults(result);
+        } catch (error) {
+            console.error('Error sending AI prompt:', error);
+            setAiSearchResults([]); // Clear results on error
+            // Optionally, you might want to show an alert on the UI for the error
+        } finally {
+            setAiSearchLoading(false);
+        }
+    };
+
     return (
         <Card className="mt-4 shadow-sm border-0 rounded-3">
             <Card.Header className="bg-white d-flex justify-content-between align-items-center">
                 <h5 className="mb-0 d-flex align-items-center">
                     <PersonCircle size={20} className="me-2" /> Community Members
                 </h5>
+                <InputGroup className="w-25 me-2">
+                    <FormControl
+                        type="text"
+                        placeholder="AI SEARCH"
+                        aria-label="AI search input"
+                        value={aiSearchInput}
+                        onChange={(e) => setAiSearchInput(e.target.value)}
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                                handleAiSearch();
+                            }
+                        }}
+                    />
+                    <Button variant="outline-info" onClick={handleAiSearch} disabled={aiSearchLoading}>
+                        {aiSearchLoading ? <Spinner animation="border" size="sm" /> : <Stars size={15} />} AI
+                    </Button>
+                </InputGroup>
                 <div className="d-flex align-items-center">
+                    {/* UserSearch might need adjustment if you want it to filter AI results too */}
                     <UserSearch
-                        users={users}
+                        users={users} // UserSearch still operates on the original full list
                         onFilteredUsersChange={onFilteredUsersChange}
                     />
                     <Button variant="outline-primary" size="sm" onClick={onShowAddUserModal}>
@@ -69,22 +128,25 @@ function DashboardTable({
                     </tr>
                     </thead>
                     <tbody>
-                    {displayUsers.length > 0 ? (
-                        displayUsers.map((user) => (
+                    {currentDisplayUsers.length > 0 ? (
+                        currentDisplayUsers.map((user) => (
                             <tr
-                                key={user.id}
+                                key={user.user_id || user.id}
                                 className="align-middle"
                             >
-                                <td className="text-center">{user.fullName}</td>
-                                <td className="text-center">{user.role}</td>
-                                <td className="text-center">{user.yearsOfExperience}</td> {/* מציג את הנתון שנשמר באובייקט */}
                                 <td className="text-center">
-                                    {user.linkedin ? (
-                                        <Button variant="link" className="p-0 text-primary" href={user.linkedin} target="_blank" rel="noopener noreferrer">
+                                    {user.english_name || user.fullName}
+                                    {user.score !== undefined && ` (${user.score})`} {/* Display score if it exists */}
+                                </td>
+                                <td className="text-center">{user.role}</td>
+                                <td className="text-center">{user.years_of_xp || user.yearsOfExperience}</td>
+                                <td className="text-center">
+                                    {user.linkedin_url || user.linkedin ? (
+                                        <Button variant="link" className="p-0 text-primary" href={user.linkedin_url || user.linkedin} target="_blank" rel="noopener noreferrer">
                                             <Linkedin size={25} />
                                         </Button>
                                     ) : (
-                                        <Button variant="link" className="p-0 text-primary" href={`https://www.linkedin.com/in/${user.fullName.replace(/\s/g, '-').toLowerCase()}`} target="_blank" rel="noopener noreferrer">
+                                        <Button variant="link" className="p-0 text-primary" href={`https://www.linkedin.com/in/${(user.english_name || user.fullName).replace(/\s/g, '-').toLowerCase()}`} target="_blank" rel="noopener noreferrer">
                                             <Linkedin size={25} />
                                         </Button>
                                     )}

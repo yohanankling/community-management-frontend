@@ -41,7 +41,6 @@ function DashboardMainContent({ onExcelImport }) {
                     fullName: user.english_name,
                     linkedin: user.linkedin || '',
                     role: user.role,
-                    // מגרים מספר אקראי ושומרים אותו באובייקט המשתמש
                     yearsOfExperience: Math.floor(Math.random() * 15) + 1,
                 }));
                 setUsers(formattedUsers);
