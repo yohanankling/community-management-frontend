@@ -6,7 +6,6 @@ import { UserProvider } from './context/UserProvider';
 
 import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
-import NotFound from "./pages/Notfound.jsx";
 import UserDashboard from "./pages/UserDashboard.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import ConnectionsDashboard from "./components/connections/ConnectionsDashboard.jsx";
