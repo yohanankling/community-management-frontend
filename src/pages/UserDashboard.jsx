@@ -9,7 +9,6 @@ import UserDetailsModal from "../modals/UserDetailsModal";
 import ConnectionsHistoryModal from "../modals/UserEventsHistoryModal.jsx";
 import { getUserById } from '../services/authService.jsx';
 
-// ... (שאר ה-imports וה-mock data נשארים כפי שהם)
 
 function UserDashboard() {
     const { user, login } = useUser();

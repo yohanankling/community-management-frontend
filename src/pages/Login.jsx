@@ -1,4 +1,3 @@
-// Login.jsx
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { Linkedin as LinkedinIcon } from 'react-bootstrap-icons';
@@ -62,8 +61,15 @@ function Login() {
             if (authData.user && authData.user.id) {
                 localStorage.setItem('currentUserId', authData.user.id);
             }
-            navigate('/user-dashboard');
+
+            if (authData.user && authData.user.email === 'admin@admin.com') {
+                navigate('/dashboard');
+            } else {
+                navigate('/user-dashboard');
+            }
+            
             setSuccess('התחברת בהצלחה!');
+
         } catch (err) {
             setError(err.response?.message || err.message || 'שגיאת התחברות.');
         } finally {

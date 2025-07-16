@@ -6,7 +6,7 @@ import DashboardMainContent from "../components/dashboard/DashboardMainContent";
 import mockUsers from "../data/mockUsers";
 
 function Dashboard() {
-    const [users, setUsers] = useState(mockUsers);
+    const [, setUsers] = useState(mockUsers);
 
 
     const handleExcelImportOnDashboard = (data) => {
@@ -15,7 +15,7 @@ function Dashboard() {
 
     return (
         <div className="d-flex flex-column vh-100">
-            <DashboardHeader totalMembers={users.length} /> {}
+            <DashboardHeader /> {}
 
             <DashboardMainContent onExcelImport={handleExcelImportOnDashboard} />
 

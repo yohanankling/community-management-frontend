@@ -1,9 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // ייבוא useState ו-useEffect
 import { Card, Col, Row } from 'react-bootstrap';
 import { PersonCircle, Envelope, Linkedin } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';
+import { getAllUsers } from '../../services/authService'; // ייבוא שירות ה-API
 
-function DashboardCards({ totalMembers }) {
+function DashboardCards() { // הסרנו את totalMembers מ-props, כי נשלוף אותו כאן
+    const [totalMembers, setTotalMembers] = useState(0); // מצב פנימי לכמות החברים
+    const [loading, setLoading] = useState(true); // מצב לטעינה
+    const [error, setError] = useState(null);   // מצב לשגיאות
+
+    useEffect(() => {
+        const getMembersCount = async () => {
+            try {
+                const data = await getAllUsers(); // קריאה ל-API ישירות מכאן
+                if (data.success) {
+                    setTotalMembers(data.count); // עדכון המצב
+                } else {
+                    setError(data.message || 'Failed to fetch users count.');
+                }
+            } catch (err) {
+                console.error("Failed to fetch members count:", err);
+                setError(err.message || "Error fetching members count. Please try again later.");
+            } finally {
+                setLoading(false); // סיום טעינה
+            }
+        };
+
+        getMembersCount();
+    }, []); // ריצה רק פעם אחת בטעינת הקומפוננטה
+
+    // הצגת מצבי טעינה/שגיאה בתוך הכרטיס עצמו
+    let membersContent;
+    if (loading) {
+        membersContent = "Loading...";
+    } else if (error) {
+        membersContent = "Error"; // אפשר גם להציג אייקון שגיאה קטן
+    } else {
+        membersContent = totalMembers;
+    }
+
     return (
         <Row className="g-4">
             <Col md={4}>
@@ -14,7 +49,7 @@ function DashboardCards({ totalMembers }) {
                                 <PersonCircle size={30} /> Members
                             </Card.Title>
                             <Card.Text className="display-4 fw-bold text-primary">
-                                {totalMembers}
+                                {membersContent} {/* שימוש בערך הנסחף */}
                             </Card.Text>
                         </Card.Body>
                     </Card>
