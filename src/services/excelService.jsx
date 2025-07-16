@@ -1,25 +1,61 @@
-import * as XLSX from 'xlsx';
+const API_BASE_URL = 'http://localhost:5000';
 
-export const handleExcelImport = (file, onSuccess, onError) => {
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-                if (onSuccess) {
-                    onSuccess(sheet);
-                }
-            } catch (error) {
-                console.error('Import error:', error);
-                if (onError) {
-                    onError('שגיאה בייבוא הקובץ. ודא שהפורמט תקין.');
-                }
-            }
-        };
-        reader.readAsArrayBuffer(file);
+export const handleExcelImport = async (file, onSuccess, onError) => {
+    if (!file) {
+        if (onError) {
+            onError('No file selected');
+        }
+        return;
     }
+
+    try {
+        // Create FormData to send file to server
+        const formData = new FormData();
+        formData.append('excel', file);
+
+        // Send file to server for processing
+        const response = await fetch(`${API_BASE_URL}/excel/upload`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to upload and process Excel file');
+        }
+
+        const data = await response.json();
+        
+        if (onSuccess) {
+            onSuccess(data.userData || data.users || data.data || data);
+        }
+    } catch (error) {
+        console.error('Excel import error:', error);
+        if (onError) {
+            onError(error.message || 'שגיאה בייבוא הקובץ. ודא שהפורמט תקין.');
+        }
+    }
+};
+
+// Alternative function that returns a Promise for easier async/await usage
+export const uploadExcelFile = async (file) => {
+    if (!file) {
+        throw new Error('No file selected');
+    }
+
+    const formData = new FormData();
+    formData.append('excel', file);
+
+    const response = await fetch(`${API_BASE_URL}/excel/upload`, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload and process Excel file');
+    }
+
+    const data = await response.json();
+    return data.userData || data.users || data.data || data;
 };

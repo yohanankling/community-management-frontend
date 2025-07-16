@@ -18,25 +18,62 @@ function BottomNavbar({ onImport }) {
     const location = useLocation();
     const fileInputRef = useRef();
     const [importMessage, setImportMessage] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
 
-    const handleImport = (event) => {
+    const handleImport = async (event) => {
         const file = event.target.files[0];
         if (file) {
-            handleExcelImport(
-                file,
-                (data) => {
-                    setImportMessage(`Imported ${data.length} users`);
-                    onImport?.(data); // Pass data up to parent (Dashboard)
-                    event.target.value = null;
-                },
-                (err) => setImportMessage(err)
-            );
+            setIsUploading(true);
+            setImportMessage('Uploading and processing file...');
+            
+            try {
+                await handleExcelImport(
+                    file,
+                    (data) => {
+                        setImportMessage(`Successfully imported ${data.length} users`);
+                        onImport?.(data); // Pass data up to parent
+                        event.target.value = null;
+                        setIsUploading(false);
+                        
+                        // Clear message after 3 seconds
+                        setTimeout(() => setImportMessage(''), 3000);
+                    },
+                    (err) => {
+                        setImportMessage(`Error: ${err}`);
+                        setIsUploading(false);
+                        
+                        // Clear error message after 5 seconds
+                        setTimeout(() => setImportMessage(''), 5000);
+                    }
+                );
+            } catch (error) {
+                setImportMessage(`Error: ${error.message}`);
+                setIsUploading(false);
+                setTimeout(() => setImportMessage(''), 5000);
+            }
         }
     };
 
     return (
         <>
-            {importMessage && <div className="text-center text-success small py-1" style={{ position: 'fixed', bottom: '60px', width: '100%', zIndex: 1000, backgroundColor: 'rgba(255,255,255,0.9)' }}>{importMessage}</div>}
+            {importMessage && (
+                <div 
+                    className={`text-center small py-2 ${
+                        isUploading ? 'text-info' : 
+                        importMessage.includes('Error') ? 'text-danger' : 'text-success'
+                    }`} 
+                    style={{ 
+                        position: 'fixed', 
+                        bottom: '60px', 
+                        width: '100%', 
+                        zIndex: 1000, 
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        borderTop: '1px solid #dee2e6'
+                    }}
+                >
+                    {importMessage}
+                </div>
+            )}
 
             <Nav
                 className="justify-content-around align-items-center bg-white border-top shadow-lg"
@@ -55,15 +92,19 @@ function BottomNavbar({ onImport }) {
                         key={to}
                         className={`d-flex flex-column align-items-center justify-content-center p-0 ${
                             location.pathname === to ? 'text-primary' : 'text-secondary'
-                        }`}
+                        } ${isImport && isUploading ? 'opacity-50' : ''}`}
                         style={{ flex: 1, minWidth: 0, height: '100%', textDecoration: 'none' }}
-                        onClick={isImport ? () => fileInputRef.current?.click() : undefined}
+                        onClick={isImport ? (isUploading ? undefined : () => fileInputRef.current?.click()) : undefined}
                     >
                         {React.cloneElement(icon, {
                             color: location.pathname === to ? "#0d6efd" : "#6c757d"
                         })}
-                        <span className="small mt-1 d-none d-sm-block">{label}</span>
-                        <span className="small mt-1 d-block d-sm-none">{label.split(' ')[0]}</span>
+                        <span className="small mt-1 d-none d-sm-block">
+                            {isImport && isUploading ? 'Uploading...' : label}
+                        </span>
+                        <span className="small mt-1 d-block d-sm-none">
+                            {isImport && isUploading ? 'Wait...' : label.split(' ')[0]}
+                        </span>
                     </Nav.Link>
                 ))}
 
@@ -72,6 +113,7 @@ function BottomNavbar({ onImport }) {
                     type="file"
                     accept=".xlsx, .xls"
                     onChange={handleImport}
+                    disabled={isUploading}
                     style={{ display: 'none' }}
                 />
             </Nav>
