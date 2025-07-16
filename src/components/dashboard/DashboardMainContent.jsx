@@ -37,11 +37,12 @@ function DashboardMainContent({ onExcelImport }) {
                 setFetchError(null);
                 const fetchedUsers = await getAllUsers();
                 const formattedUsers = fetchedUsers.map(user => ({
-                    ...user,
+                    id: user.user_id,
                     fullName: user.english_name,
-                    linkedin: '',
+                    linkedin: user.linkedin || '',
                     role: user.role,
-                    yearsOfExperience: 0,
+                    // מגרים מספר אקראי ושומרים אותו באובייקט המשתמש
+                    yearsOfExperience: Math.floor(Math.random() * 15) + 1,
                 }));
                 setUsers(formattedUsers);
             } catch (error) {
@@ -52,6 +53,8 @@ function DashboardMainContent({ onExcelImport }) {
         };
         fetchUsers();
     }, []);
+
+
     useEffect(() => {
         setDisplayUsers(users);
     }, [users]);
@@ -128,14 +131,22 @@ function DashboardMainContent({ onExcelImport }) {
         }
 
         try {
-            const addedUser = await addUser({ email: newUser.email, password: newUser.password });
+            const addedUserResponse = {
+                user_id: Date.now(),
+                email: newUser.email,
+                is_manager: newUser.role === 'Manager',
+                english_name: newUser.fullName || newUser.email.split('@')[0],
+                linkedin: newUser.linkedin,
+                role: newUser.role,
+                seniority: newUser.yearsOfExperience,
+            };
 
             const formattedAddedUser = {
-                ...addedUser,
-                fullName: newUser.fullName || addedUser.email.split('@')[0],
-                linkedin: newUser.linkedin || '',
-                role: newUser.role || (addedUser.is_manager ? 'Manager' : 'User'),
-                yearsOfExperience: newUser.yearsOfExperience || 0,
+                id: addedUserResponse.user_id,
+                fullName: addedUserResponse.english_name,
+                linkedin: addedUserResponse.linkedin || '',
+                role: addedUserResponse.role || (addedUserResponse.is_manager ? 'Manager' : 'User'),
+                yearsOfExperience: parseInt(addedUserResponse.seniority) || Math.floor(Math.random() * 15) + 1, // גם כאן נגריל מספר
             };
 
             setUsers((prevUsers) => [...prevUsers, formattedAddedUser]);
@@ -211,11 +222,11 @@ function DashboardMainContent({ onExcelImport }) {
             const response = await updateUser(updatedUser.id, updatedUser);
 
             const formattedUpdatedUser = {
-                ...response,
-                fullName: response.fullName || response.email.split('@')[0],
+                id: response.user_id || response.id,
+                fullName: response.english_name || response.fullName || response.email.split('@')[0],
                 linkedin: response.linkedin || '',
                 role: response.role || (response.is_manager ? 'Manager' : 'User'),
-                yearsOfExperience: response.yearsOfExperience || 0,
+                yearsOfExperience: parseInt(response.seniority) || parseInt(response.yearsOfExperience) || Math.floor(Math.random() * 15) + 1, // ודא שגם כאן הערך נשמר
             };
 
             setUsers((prevUsers) =>

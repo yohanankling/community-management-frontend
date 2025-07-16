@@ -48,7 +48,7 @@ function DashboardCards() {
                                 <PersonCircle size={30} /> Members
                             </Card.Title>
                             <Card.Text className="display-4 fw-bold text-primary">
-                                {membersContent}
+                                {5}
                             </Card.Text>
                         </Card.Body>
                     </Card>
