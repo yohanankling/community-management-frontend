@@ -1,0 +1,203 @@
+/* Memory Game Styles */
+
+.memory-game-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #2c3e50;
+}
+
+.memory-game-board {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.memory-card {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+    border: none !important;
+    background: transparent !important;
+}
+
+.memory-card:hover:not(.disabled):not(.matched) {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.memory-card.highlighted {
+    animation: matchPulse 0.6s ease-in-out;
+    border-color: #28a745 !important;
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.4) !important;
+}
+
+.memory-card.matched {
+    opacity: 0.8;
+    transform: scale(0.95);
+}
+
+.memory-card.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.memory-card.flipped {
+    animation: flipIn 0.4s ease-in-out;
+}
+
+/* Card flip animation */
+@keyframes flipIn {
+    0% {
+        transform: rotateY(-90deg) scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: rotateY(0deg) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: rotateY(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Match pulse animation */
+@keyframes matchPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1);
+    }
+    50% {
+        transform: scale(1.15);
+        filter: brightness(1.2);
+    }
+    75% {
+        transform: scale(1.1);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .memory-game-board {
+        padding: 10px;
+    }
+    
+    .memory-card {
+        min-height: 50px !important;
+        min-width: 50px !important;
+    }
+    
+    .emoji {
+        font-size: 1.4rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .memory-card {
+        min-height: 45px !important;
+        min-width: 45px !important;
+    }
+    
+    .emoji {
+        font-size: 1.2rem !important;
+    }
+    
+    .memory-game-board .col-2 {
+        padding: 1px !important;
+    }
+}
+
+/* Smooth entrance animation for board */
+.memory-game-board {
+    animation: boardFadeIn 0.5s ease-out;
+}
+
+@keyframes boardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stats card styling */
+.stats-card {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Game over modal enhancements */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 15px 15px;
+}
+
+/* Button hover effects */
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Loading states */
+.loading-card {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Accessibility improvements */
+.memory-card:focus {
+    outline: 3px solid #007bff;
+    outline-offset: 2px;
+}
+
+.memory-card[aria-pressed="true"] {
+    background-color: #e9ecef !important;
+}
+
+/* Success state styling */
+.game-complete {
+    animation: celebrateSuccess 2s ease-in-out;
+}
+
+@keyframes celebrateSuccess {
+    0%, 100% {
+        transform: scale(1);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: scale(1.02);
+    }
+    20%, 40%, 60%, 80% {
+        transform: scale(0.98);
+    }
+}
