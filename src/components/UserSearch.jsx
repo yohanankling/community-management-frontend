@@ -53,10 +53,12 @@ function UserSearch({ users, onFilteredUsersChange }) {
     const uniqueRoles = useMemo(() => {
         const roles = new Set();
         users.forEach(user => {
-            if (Array.isArray(user.role)) {
-                user.role.forEach(r => roles.add(r));
-            } else if (user.role) {
-                roles.add(user.role);
+            if (user.role) {
+                const userRoles = Array.isArray(user.role)
+                    ? user.role
+                    : user.role.split(',').map(r => r.trim()).filter(r => r);
+
+                userRoles.forEach(r => roles.add(r));
             }
         });
         return Array.from(roles).sort();
@@ -109,14 +111,20 @@ function UserSearch({ users, onFilteredUsersChange }) {
                 ? user.fullName.toLowerCase().includes(searchFilters.fullName.toLowerCase())
                 : true;
 
+            const userRolesForTextSearch = Array.isArray(user.role)
+                ? user.role.join(', ').toLowerCase()
+                : (user.role ? user.role.toLowerCase() : '');
+
             const matchesRoleTextSearch = searchFilters.role
-                ? user.role.toLowerCase().includes(searchFilters.role.toLowerCase())
+                ? userRolesForTextSearch.includes(searchFilters.role.toLowerCase())
                 : true;
 
+            const userRolesAsArray = Array.isArray(user.role)
+                ? user.role
+                : (user.role ? user.role.split(',').map(r => r.trim()).filter(r => r) : []);
+
             const matchesRoleTags = selectedRoleTags.length === 0 || (
-                Array.isArray(user.role)
-                    ? selectedRoleTags.every(tag => user.role.includes(tag))
-                    : selectedRoleTags.includes(user.role)
+                selectedRoleTags.every(selectedTag => userRolesAsArray.includes(selectedTag))
             );
 
             const minExp = parseInt(searchFilters.yearsOfExperienceMin, 10);
