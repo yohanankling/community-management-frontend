@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Card,
     Table,
@@ -17,50 +17,53 @@ import {
     Stars,
 } from 'react-bootstrap-icons';
 import UserSearch from '../UserSearch';
-import { sendAiPrompt } from '../../services/aiService'; // Import sendAiPrompt
+import { sendAiPrompt } from '../../services/aiService';
 
 function DashboardTable({
                             users,
-                            onFilteredUsersChange, // Keep this if UserSearch still filters the original 'users'
                             onShowAddUserModal,
                             onRowClick,
                         }) {
     const [aiSearchInput, setAiSearchInput] = useState('');
-    const [aiSearchResults, setAiSearchResults] = useState([]); // Initialize as empty array
+    const [aiSearchResults, setAiSearchResults] = useState([]);
     const [aiSearchLoading, setAiSearchLoading] = useState(false);
-    const [currentDisplayUsers, setCurrentDisplayUsers] = useState(users); // New state for users displayed in table
+    const [userSearchFilteredUsers, setUserSearchFilteredUsers] = useState(users);
+    const [currentDisplayUsers, setCurrentDisplayUsers] = useState(users);
 
-    // Update currentDisplayUsers when 'users' prop changes or when AI search results are available
     useEffect(() => {
+        let finalUsersToDisplay;
         if (aiSearchResults.length > 0) {
-            setCurrentDisplayUsers(aiSearchResults);
+            finalUsersToDisplay = userSearchFilteredUsers;
         } else {
-            setCurrentDisplayUsers(users); // Revert to original users if AI results are cleared
+            finalUsersToDisplay = userSearchFilteredUsers;
         }
-    }, [users, aiSearchResults]);
-
+        setCurrentDisplayUsers(finalUsersToDisplay);
+    }, [userSearchFilteredUsers, aiSearchResults]);
 
     const handleAiSearch = async () => {
         if (!aiSearchInput.trim()) {
-            console.log('AI search input is empty. Displaying all users.');
-            setAiSearchResults([]); // Clear AI search results to display all users
+            setAiSearchResults([]);
+            setUserSearchFilteredUsers(users);
             return;
         }
 
         setAiSearchLoading(true);
         try {
-            const result = await sendAiPrompt(aiSearchInput); // Send prompt to AI service
-            console.log('AI Search Results:', result);
-            // Assuming 'result' is an array of user objects directly
+            const result = await sendAiPrompt(aiSearchInput);
             setAiSearchResults(result);
+            setUserSearchFilteredUsers(result);
         } catch (error) {
             console.error('Error sending AI prompt:', error);
-            setAiSearchResults([]); // Clear results on error
-            // Optionally, you might want to show an alert on the UI for the error
+            setAiSearchResults([]);
+            setUserSearchFilteredUsers(users);
         } finally {
             setAiSearchLoading(false);
         }
     };
+
+    const handleUserSearchFilteredUsersChange = useCallback((filteredList) => {
+        setUserSearchFilteredUsers(filteredList);
+    }, []);
 
     return (
         <Card className="mt-4 shadow-sm border-0 rounded-3">
@@ -86,10 +89,9 @@ function DashboardTable({
                     </Button>
                 </InputGroup>
                 <div className="d-flex align-items-center">
-                    {/* UserSearch might need adjustment if you want it to filter AI results too */}
                     <UserSearch
-                        users={users} // UserSearch still operates on the original full list
-                        onFilteredUsersChange={onFilteredUsersChange}
+                        users={aiSearchResults.length > 0 ? aiSearchResults : users}
+                        onFilteredUsersChange={handleUserSearchFilteredUsersChange}
                     />
                     <Button variant="outline-primary" size="sm" onClick={onShowAddUserModal}>
                         Add <PersonCircle size={15} />
@@ -136,7 +138,7 @@ function DashboardTable({
                             >
                                 <td className="text-center">
                                     {user.english_name || user.fullName}
-                                    {user.score !== undefined && ` (${user.score})`} {/* Display score if it exists */}
+                                    {user.score !== undefined && ` (${user.score})`}
                                 </td>
                                 <td className="text-center">{user.role}</td>
                                 <td className="text-center">{user.years_of_xp || user.yearsOfExperience}</td>
@@ -169,9 +171,15 @@ function DashboardTable({
                     ) : (
                         <tr>
                             <td colSpan="5" className="text-center py-3">
-                                <Alert variant="info" className="mb-0">
-                                    No users found matching your search criteria.
-                                </Alert>
+                                {aiSearchLoading ? (
+                                    <Spinner animation="border" role="status">
+                                        <span className="visually-hidden">Loading AI search...</span>
+                                    </Spinner>
+                                ) : (
+                                    <Alert variant="info" className="mb-0">
+                                        No users found matching your criteria.
+                                    </Alert>
+                                )}
                             </td>
                         </tr>
                     )}
