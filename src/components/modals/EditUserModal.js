@@ -1,10 +1,9 @@
-// src/components/EditUserModal.js
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
 import { PencilSquare } from "react-bootstrap-icons";
 
 function EditUserModal({ show, onHide, user, onUserUpdate }) {
-    // Initialize editableUser state with the user prop, or an empty object if user is null
+    // editableUser holds the current state of the user data being edited in the form.
     const [editableUser, setEditableUser] = useState(user || {
         fullName: "",
         email: "",
@@ -12,23 +11,32 @@ function EditUserModal({ show, onHide, user, onUserUpdate }) {
         linkedin: "",
         role: "",
     });
+    // showAlert controls the visibility of the alert message in the modal.
     const [showAlert, setShowAlert] = useState(false);
+    // alertVariant determines the styling (e.g., success, danger) of the alert message.
     const [alertVariant, setAlertVariant] = useState("success");
+    // alertMessage stores the text content displayed within the alert.
     const [alertMessage, setAlertMessage] = useState("");
 
-    // Update editableUser whenever the 'user' prop changes (e.g., a different user is selected)
+    // This effect synchronizes the modal's internal state (editableUser) with the 'user' prop.
+    // It ensures that when a new user is selected for editing or the modal is reopened,
+    // the form fields are pre-populated with the correct user data.
+    // It also clears any active alert messages to provide a fresh state for the new editing session.
     useEffect(() => {
         if (user) {
             setEditableUser(user);
-            setShowAlert(false); // Clear any alerts on user change
+            setShowAlert(false);
         }
-    }, [user, show]); // Also depend on 'show' to reset when modal is reopened
+    }, [user, show]);
 
-    // Don't render the modal if no user is provided
+    // If no user object is provided, the modal should not render.
+    // This prevents rendering the modal with incomplete or missing data.
     if (!user) {
         return null;
     }
 
+    // handleEditChange updates the `editableUser` state as the user types into the form fields.
+    // It uses the input's 'name' attribute to dynamically update the corresponding property in the state.
     const handleEditChange = (e) => {
         const { name, value } = e.target;
         setEditableUser((prevUser) => ({
@@ -37,6 +45,11 @@ function EditUserModal({ show, onHide, user, onUserUpdate }) {
         }));
     };
 
+    // handleSave is triggered when the "Save Changes" button is clicked.
+    // It first performs client-side validation to ensure essential fields are not empty.
+    // If validation passes, it calls the `onUserUpdate` prop, passing the modified user data
+    // back to the parent component for further processing (e.g., API call).
+    // Finally, it displays a success or error alert and closes the modal after a short delay.
     const handleSave = () => {
         if (!editableUser.fullName || !editableUser.email) {
             setAlertVariant("danger");
@@ -45,13 +58,15 @@ function EditUserModal({ show, onHide, user, onUserUpdate }) {
             return;
         }
 
-        onUserUpdate(editableUser); // Call the parent's update function
+        onUserUpdate(editableUser);
+
         setAlertVariant("success");
         setAlertMessage("User details updated successfully!");
         setShowAlert(true);
+
         setTimeout(() => {
             setShowAlert(false);
-            onHide(); // Close modal after successful update
+            onHide();
         }, 1500);
     };
 
@@ -63,11 +78,10 @@ function EditUserModal({ show, onHide, user, onUserUpdate }) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
-                {showAlert && (
-                    <Alert variant={alertVariant} onClose={() => setShowAlert(false)} dismissible>
-                        {alertMessage}
-                    </Alert>
-                )}
+                {/* The Alert component is conditionally rendered based on the `showAlert` state. */}
+                <Alert variant={alertVariant} onClose={() => setShowAlert(false)} dismissible show={showAlert}>
+                    {alertMessage}
+                </Alert>
                 <Form>
                     <Form.Group className="mb-3">
                         <Form.Label>Full Name</Form.Label>
