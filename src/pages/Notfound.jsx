@@ -56,7 +56,7 @@ function NotFoundPage() {
                     to="/memory-game" // Specifies the internal path to navigate to.
                     className="btn btn-primary font-semibold py-2 px-4 rounded-full transition duration-300 mb-3"
                 >
-                    or spend some time with us
+                    Or spend some time with us
                 </Link>
             </div>
         </div>
